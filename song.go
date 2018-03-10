@@ -6,15 +6,14 @@ import (
 )
 
 type song struct {
-	ID     int    `json:"id"`
-	Title  string `json:"title"`
-	Artist string `json:"artist"`
-	Album  string `json:"album"`
+	ID    int    `json:"id"`
+	Title string `json:"title"`
+	Album string `json:"album"`
 }
 
 func (s *song) getSong(db *sql.DB) error {
-	return db.QueryRow("SELECT title, artist, album FROM songs WHERE id=$1",
-		s.ID).Scan(&s.Title, &s.Artist, &s.Album)
+	return db.QueryRow("SELECT nm, cd FROM songs WHERE id=$1",
+		s.ID).Scan(&s.Title, &s.Album)
 }
 
 func (s *song) updateSong(db *sql.DB) error {
@@ -26,7 +25,15 @@ func (s *song) deleteSong(db *sql.DB) error {
 }
 
 func (s *song) createSong(db *sql.DB) error {
-	return errors.New("Not implemented")
+	err := db.QueryRow(
+		"INSERT INTO songs(nm, cd) VALUES($1, $2) RETURNING id",
+		s.Title, s.Album).Scan(&s.ID)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func getSongs(db *sql.DB, start, count int) ([]song, error) {

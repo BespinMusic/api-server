@@ -37,8 +37,8 @@ func (a *App) Run(addr string) {
 
 func (a *App) initializeRoutes() {
 	a.Router.HandleFunc("/songs", a.getSongs).Methods("GET")
-	// a.Router.HandleFunc("/product", a.createProduct).Methods("POST")
-	// a.Router.HandleFunc("/product/{id:[0-9]+}", a.getProduct).Methods("GET")
+	a.Router.HandleFunc("/song", a.createSong).Methods("POST")
+	a.Router.HandleFunc("/song/{id:[0-9]+}", a.getSong).Methods("GET")
 	// a.Router.HandleFunc("/product/{id:[0-9]+}", a.updateProduct).Methods("PUT")
 	// a.Router.HandleFunc("/product/{id:[0-9]+}", a.deleteProduct).Methods("DELETE")
 }
@@ -61,6 +61,45 @@ func (a *App) getSongs(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respondWithJSON(w, http.StatusOK, songs)
+}
+
+func (a *App) getSong(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid Song ID")
+		return
+	}
+
+	s := song{ID: id}
+	if err := s.getSong(a.DB); err != nil {
+		switch err {
+		case sql.ErrNoRows:
+			respondWithError(w, http.StatusNotFound, "Song not found")
+		default:
+			respondWithError(w, http.StatusInternalServerError, err.Error())
+		}
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, s)
+}
+
+func (a *App) createSong(w http.ResponseWriter, r *http.Request) {
+	var s song
+	decoder := json.NewDecoder(r.Body)
+	if err := decoder.Decode(&s); err != nil {
+		respondWithError(w, http.StatusBadRequest, "Invalid request payload")
+		return
+	}
+	defer r.Body.Close()
+
+	if err := s.createSong(a.DB); err != nil {
+		respondWithError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	respondWithJSON(w, http.StatusCreated, s)
 }
 
 func respondWithError(w http.ResponseWriter, code int, message string) {
