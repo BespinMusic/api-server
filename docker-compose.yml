@@ -5,4 +5,4 @@ services:
     ports:
       -  "9145:5432"
     environment:
-      - "POSTGRES_DB=bespin"
+      - "POSTGRES_DB=${DBNAME}"

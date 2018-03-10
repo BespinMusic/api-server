@@ -3,7 +3,6 @@
 package main_test
 
 import (
-	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -30,19 +29,11 @@ func TestMain(m *testing.M) {
 		os.Getenv("TEST_DB_PASSWORD"),
 		os.Getenv("TEST_DB_NAME"))
 
-	ensureTableExists()
-
 	code := m.Run()
 
 	clearTable()
 
 	os.Exit(code)
-}
-
-func ensureTableExists() {
-	if _, err := a.DB.Exec(tableCreationQuery); err != nil {
-		log.Fatal(err)
-	}
 }
 
 func clearTable() {
