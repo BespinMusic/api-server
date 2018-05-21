@@ -1,13 +1,18 @@
 package main
 
-import "os"
+import (
+	"fmt"
+	"os"
+)
 
 func main() {
 	a := App{}
 	a.Initialize(
+		os.Getenv("APP_DB_HOST"),
+		os.Getenv("APP_DB_PORT"),
 		os.Getenv("APP_DB_USERNAME"),
 		os.Getenv("APP_DB_PASSWORD"),
 		os.Getenv("APP_DB_NAME"))
 
-	a.Run(":8080")
+	a.Run(fmt.Sprintf(":%s", os.Getenv("LOCAL_PORT")))
 }

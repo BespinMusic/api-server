@@ -17,9 +17,9 @@ type App struct {
 	DB     *sql.DB
 }
 
-func (a *App) Initialize(user, password, dbname string) {
+func (a *App) Initialize(host, port, user, password, dbname string) {
 	connectionURL :=
-		fmt.Sprintf("postgres://localhost:9145/%s?user=%s&password=%s&sslmode=disable&dbname=%s", dbname, user, password, dbname)
+		fmt.Sprintf("postgres://%s:%s/%s?user=%s&password=%s&sslmode=disable&dbname=%s", host, port, dbname, user, password, dbname)
 
 	var err error
 	a.DB, err = sql.Open("postgres", connectionURL)
@@ -27,12 +27,15 @@ func (a *App) Initialize(user, password, dbname string) {
 		log.Fatal(err)
 	}
 
+	log.Print("Db Connected")
+
 	a.Router = mux.NewRouter()
 	a.initializeRoutes()
 }
 
 func (a *App) Run(addr string) {
-	log.Fatal(http.ListenAndServe(":8000", a.Router))
+	log.Print("Starting to Run")
+	log.Fatal(http.ListenAndServe(addr, a.Router))
 }
 
 func (a *App) initializeRoutes() {
@@ -64,6 +67,7 @@ func (a *App) getSongs(w http.ResponseWriter, r *http.Request) {
 }
 
 func (a *App) getSong(w http.ResponseWriter, r *http.Request) {
+	log.Print("Handler Called")
 	vars := mux.Vars(r)
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
