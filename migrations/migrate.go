@@ -10,15 +10,24 @@ import (
 	_ "github.com/mattes/migrate/source/file"
 )
 
-func main() {
-	dbname := os.Args[1]
-	log.Print(dbname)
-
+func formatURL(host, port, user, password, dbname string) string {
 	connectionURL :=
-		fmt.Sprintf("postgres://localhost:9145/%s?user=postgres&password=test&sslmode=disable&dbname=%s", dbname, dbname)
+		fmt.Sprintf("postgres://%s:%s/%s?user=%s&password=%s&sslmode=disable&dbname=%s", host, port, dbname, user, password, dbname)
+
+	return connectionURL
+}
+
+func main() {
+
+	connectionURL := formatURL(
+		os.Getenv("APP_DB_HOST"),
+		os.Getenv("APP_DB_PORT"),
+		os.Getenv("APP_DB_USERNAME"),
+		os.Getenv("APP_DB_PASSWORD"),
+		os.Getenv("APP_DB_NAME"))
 
 	log.Print(connectionURL)
-	m, err := migrate.New("file://./migrations/", connectionURL)
+	m, err := migrate.New("file://./migrations", connectionURL)
 	if err != nil {
 		log.Fatal(err)
 		return
